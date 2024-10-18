@@ -4,9 +4,8 @@ import numpy as np
 import re
 import streamlit as st
 
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.feature_extraction.text import TfidfVectorizer
 
 import nltk
 from nltk.tokenize import word_tokenize
@@ -60,7 +59,7 @@ vocabulary = vectorizer.get_feature_names_out()
 vocabulary = [text for text in vocabulary if not re.search(r'\d', text)]
 
 # Get dex entries
-full_dex = pd.read_csv("Documents/GT/Potential Projects/pokedex_full.csv")
+full_dex = pd.read_csv("pokedex_full.csv")
 vectorizer.fit(full_dex['Description'])
 description_matrix = vectorizer.transform(full_dex['Description'])
 
