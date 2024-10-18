@@ -11,7 +11,7 @@ st.title("Pokemon Personality Team Generator")
 # %% Inputs
 
 # What is your personal aesthetic? What colors, materials, and patterns describe your wardrobe or living spaces? (cottagecore, beach vibes, lumberjack, business formal, cozy, etc.)
-aesthetic = st.text_input("What is your personal aesthetic? What colors, materials, and patterns describe your wardrobe or living spaces? (cottagecore, beach vibes, lumberjack, business formal, cozy, etc.)", "I like the small cozy feel of cottagecore, with the dark greens, wood burning stove, and homemade bread, reading a book on a rainy day. I also wear a lot of hawaiian shirts and like cool, breezy clothes. Overall, my aesthetic is comfy.")
+aesthetic = st.text_input("What is your personal aesthetic? What colors, materials, and patterns describe your wardrobe or living spaces? (cottagecore, beach vibes, lumberjack, business formal, cozy, etc.)", "I like the small cozy feel of cottages, with the dark greens, wood burning stove, and homemade bread, reading a book on a rainy day. I also wear a lot of hawaiian shirts and like cool, breezy clothes. Overall, my aesthetic is comfy.")
 
 # What kind of weather do you like? (thunderstorms, low humidity, sunny afternoons, temperature)
 weather = st.text_input("What kind of weather do you like? (thunderstorms, low humidity, sunny afternoons, temperature)", "I enjoy sunny, cloudless days in general, with the occasional rainy day. I like warm days and cool evenings.")
@@ -32,4 +32,4 @@ mood = st.text_input("What is your general disposition? (grumpy, jolly, content)
 hobbies = st.text_input("What are your hobbies? (hiking, exercising, video games, underwater basketweaving)", "I like to code and work on data analysis projects. I like to hike and go to the gym to stay healthy.")
 
 # Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?
-num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", 6)
+num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", 6, min_value = 1, max_value = 6)
