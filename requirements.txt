@@ -1,5 +1,5 @@
-sklearn.feature_extraction.text
-sklearn.metrics.pairwise
+streamlit
+scikit-learn
 nltk
 torch
 transformers
