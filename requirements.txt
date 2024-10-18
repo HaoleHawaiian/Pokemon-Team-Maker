@@ -1,6 +1,5 @@
 scikit-learn
 streamlit
-sklearn
 nltk
 torch
 transformers
