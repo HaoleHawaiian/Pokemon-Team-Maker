@@ -32,4 +32,4 @@ mood = st.text_input("What is your general disposition? (grumpy, jolly, content)
 hobbies = st.text_input("What are your hobbies? (hiking, exercising, video games, underwater basketweaving)", "I like to code and work on data analysis projects. I like to hike and go to the gym to stay healthy.")
 
 # Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?
-num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", 6, min_value = 1, max_value = 6)
+num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", value = 6, min_value = 1, max_value = 6)
