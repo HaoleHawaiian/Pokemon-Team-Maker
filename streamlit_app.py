@@ -56,9 +56,17 @@ def main():
     num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", value = 6, min_value = 1, max_value = 6)
 
     
-    dex_bow_vec = np.load("C:/Users/mroberts/full_dex_bow.npy")
-    dex_tf_idf_vec = np.load("C:/Users/mroberts/full_dex_tfidf_sparse.npz")
-    full_dex = pd.read_csv("C:/Users/mroberts/pokedex_full.csv")
+    # Update these URLs with your actual GitHub raw URLs
+    dex_bow_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/full_dex_bow.npy"
+    dex_tf_idf_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/full_dex_tfidf_sparse.npz"
+    full_dex_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/pokedex_full.csv"
+
+    # Load the .npy file
+    dex_bow_vec = np.load(io.BytesIO(download_file(dex_bow_url)))
+    # Load the .npz file
+    dex_tf_idf_vec = np.load(io.BytesIO(download_file(dex_tf_idf_url)))
+    # Load the CSV file
+    full_dex = pd.read_csv(io.BytesIO(download_file(full_dex_url)))
     
     # CountVectorizer setup (assuming consistent feature names)
     vectorizer = CountVectorizer(stop_words='english')
