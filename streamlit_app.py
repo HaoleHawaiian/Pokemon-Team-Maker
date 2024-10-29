@@ -4,6 +4,7 @@ import io
 import tempfile
 # import re
 import streamlit as st
+import requests
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
