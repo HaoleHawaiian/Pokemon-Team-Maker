@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import io
+import tempfile
 # import re
 import streamlit as st
 
@@ -16,6 +18,13 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Load pre-trained BERT model and tokenizer
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
+
+def download_file(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        raise Exception(f"Failed to download file from {url}")
 
 
 def input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies):
@@ -61,11 +70,18 @@ def main():
     dex_tf_idf_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/full_dex_tfidf_sparse.npz"
     full_dex_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/pokedex_full.csv"
 
-    # Load the .npy file
-    dex_bow_vec = np.load(io.BytesIO(download_file(dex_bow_url)))
-    # Load the .npz file
-    dex_tf_idf_vec = np.load(io.BytesIO(download_file(dex_tf_idf_url)))
-    # Load the CSV file
+    # Use a temporary file to save and load .npy and .npz files
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(download_file(dex_bow_url))
+        temp_file_path = temp_file.name
+    dex_bow_vec = np.load(temp_file_path)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(download_file(dex_tf_idf_url))
+        temp_file_path = temp_file.name
+    dex_tf_idf_vec = np.load(temp_file_path)
+
+    # Load the CSV file directly into a DataFrame
     full_dex = pd.read_csv(io.BytesIO(download_file(full_dex_url)))
     
     # CountVectorizer setup (assuming consistent feature names)
