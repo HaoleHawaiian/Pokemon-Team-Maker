@@ -80,7 +80,7 @@ def main():
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(download_file(dex_tf_idf_url))
         temp_file_path = temp_file.name
-    dex_tf_idf_vec = np.load(temp_file_path)
+    dex_tf_idf_vec = np.load_npz(temp_file_path)
 
     # Load the CSV file directly into a DataFrame
     full_dex = pd.read_csv(io.BytesIO(download_file(full_dex_url)))
