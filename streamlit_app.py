@@ -11,7 +11,7 @@ from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
 # import nltk
-# from nltk.tokenize import word_tokenize
+from nltk.tokenize import word_tokenize
 # nltk.download('wordnet')
 # nltk.download('punkt')
 
@@ -49,8 +49,65 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
     # Create a DataFrame for the top Pokémon, using Pokémon names
     top_pokemon = total_similarity.head(num_pokemon).reset_index()
     top_pokemon.columns = ['Pokemon', 'Similarity']
-    
     return top_pokemon
+
+def load_glove_embeddings(file_path):
+    embeddings = {}
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            vector = np.array(values[1:], dtype='float32')
+            embeddings[word] = vector
+    return embeddings
+
+def calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings, embedding_dim=100):
+    tfidf_vocab_dict = tfidf_vectorizer.vocabulary_
+    dex_embeddings = []
+    
+    for desc in descriptions:
+        tokens = word_tokenize(desc.lower())
+        embedding_sum = np.zeros(embedding_dim)
+        total_weight = 0
+        
+        for token in tokens:
+            idx = tfidf_vocab_dict.get(token)
+            if idx is not None:
+                weight = tfidf_vectorizer.transform([desc])[0, idx]
+                
+                if weight > 0:
+                    glove_embedding = glove_embeddings.get(token, np.zeros(embedding_dim))
+                    
+                    if not np.all(glove_embedding == 0):
+                        embedding_sum += glove_embedding * weight
+                        total_weight += weight
+        
+        dex_embeddings.append(embedding_sum / total_weight if total_weight > 0 else embedding_sum)
+    return np.array(dex_embeddings)
+
+# Function to compute similarities
+def compute_similarities(user_input, descriptions, tfidf_vectorizer, glove_embeddings):
+    user_input = ' '.join(user_input)
+    user_tokens = word_tokenize(user_input)
+    user_embedding = np.zeros(100)
+    total_weight = 0
+
+    for token in user_tokens:
+        idx = tfidf_vectorizer.vocabulary_.get(token)
+        if idx is not None:
+            weight = tfidf_vectorizer.transform([user_input])[0, idx]
+            glove_embedding = glove_embeddings.get(token, np.zeros(100))
+            user_embedding += glove_embedding * weight
+            total_weight += weight
+            
+    user_embedding /= total_weight if total_weight > 0 else 1
+
+    # Calculate dex embeddings
+    dex_embeddings = calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings)
+
+    # Compute cosine similarity
+    cosine_sim = cosine_similarity(user_embedding.reshape(1, -1), dex_embeddings).flatten()
+    return cosine_sim
 
 def main():
     st.title("Pokemon Personality Team Generator")
@@ -105,8 +162,13 @@ def main():
         input_tfidf = vectorize_inputs(inputs, tfidf_vectorizer)
         team_tfidf = cosine_sim(input_tfidf, dex_tf_idf_vec, num_pokemon, full_dex, tfidf_vectorizer.get_feature_names_out())
         
+        #GloVe
+        similarity_results = compute_similarities(inputs, full_dex['Description'], tfidf_vectorizer, glove_embeddings)
+        similarity_df = pd.DataFrame({'Pokemon': full_dex['Pokemon'], 'Similarity': similarity_results})
+        similarity_df = similarity_df.sort_values(by='Similarity', ascending=False).head(num_pokemon)
+        
         # Display
-        col1, col2, col3 = st.columns(3)
+        col1, col2, col3, col4 = st.columns(4)
         
         with col1:
             st.write("Option 1:\n")
@@ -118,6 +180,11 @@ def main():
             
         with col3:
             st.write("Option 3:\n")
+            st.dataframe(similarity_df)
+            
+        with col4:
+            st.write("Option 4:\n")
             #st.dataframe()
+
 if __name__ == "__main__":
     main()
