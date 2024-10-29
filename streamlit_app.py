@@ -10,10 +10,10 @@ from scipy.sparse import load_npz
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-# import nltk
+import nltk
 from nltk.tokenize import word_tokenize
 # nltk.download('wordnet')
-# nltk.download('punkt')
+nltk.download('punkt')
 
 # import torch
 # from transformers import BertTokenizer, BertModel
