@@ -5,6 +5,7 @@ import tempfile
 # import re
 import streamlit as st
 import requests
+from scipy.sparse import load_npz
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -27,7 +28,6 @@ def download_file(url):
     else:
         raise Exception(f"Failed to download file from {url}")
 
-
 def input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies):
     # Combine, lower, put into a list
     inputs = [aesthetic.lower(), weather.lower(), biome.lower(), living.lower(), dream_job.lower(), mood.lower(), hobbies.lower()]
@@ -37,7 +37,7 @@ def input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies
 def vectorize_inputs(inputs, vectorizer):
     return vectorizer.transform(inputs)
 
-def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names):
+def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None):
     similarity = cosine_similarity(input_bow, full_dex_bow)
     
     # Create a DataFrame with Pokémon names as columns
@@ -89,15 +89,35 @@ def main():
     vectorizer = CountVectorizer(stop_words='english')
     vectorizer.fit(full_dex['Description'])
 
+    # TfIdfVectorizer setup for TF-IDF
+    tfidf_vectorizer = TfidfVectorizer(stop_words='english')
+    tfidf_vectorizer.fit(full_dex['Description'])
+
     if st.button("Get My Team"):
+        # Preprocess inputs
         inputs = input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies)
-        # full_dex_bow, input_bow, feature_names, dex_df = bag_of_words(inputs, full_dex)
+        
+        # Bag of Words
         input_bow = vectorize_inputs(inputs, vectorizer)
         team = cosine_sim(input_bow, dex_bow_vec, num_pokemon, full_dex, vectorizer.get_feature_names_out())
 
+        # TF-IDF
+        input_tfidf = vectorize_inputs(inputs, tfidf_vectorizer)
+        team_tfidf = cosine_sim(input_tfidf, dex_tf_idf_vec, num_pokemon, full_dex, tfidf_vectorizer.get_feature_names_out())
+        
         # Display
-        st.write("Your team closest to your personality:\n")
-        st.dataframe(team)
-
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            st.write("Option 1:\n")
+            st.dataframe(team)
+            
+        with col2:
+            st.write("Option 2:\n")
+            st.dataframe(team_tfidf)
+            
+        with col3:
+            st.write("Option 3:\n")
+            #st.dataframe()
 if __name__ == "__main__":
     main()
