@@ -66,9 +66,9 @@ def main():
 
     
     # Update these URLs with your actual GitHub raw URLs
-    dex_bow_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/full_dex_bow.npy"
-    dex_tf_idf_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/full_dex_tfidf_sparse.npz"
-    full_dex_url = "https://raw.githubusercontent.com/<username>/<repository>/<branch>/pokedex_full.csv"
+    dex_bow_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_bow.npy"
+    dex_tf_idf_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_tfidf_sparse.npz"
+    full_dex_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/pokedex_full.csv"
 
     # Use a temporary file to save and load .npy and .npz files
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
