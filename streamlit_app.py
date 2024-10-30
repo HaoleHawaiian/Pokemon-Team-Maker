@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import io
-from io import StringIO
 import tempfile
 # import re
 import streamlit as st
@@ -22,12 +21,18 @@ nltk.download('punkt')
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
 
+def download_file(url):
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.content
+    else:
+        raise Exception(f"Failed to download file from {url}")
+
 def load_glove_embeddings(url):
     embeddings = {}
     response = requests.get(url)
     if response.status_code == 200:
-        data = StringIO(response.text)
-        for line in data:
+        for line in response.text.splitlines():
             values = line.split()
             word = values[0]
             vector = np.array(values[1:], dtype='float32')
@@ -59,20 +64,6 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
     top_pokemon = total_similarity.head(num_pokemon).reset_index()
     top_pokemon.columns = ['Pokemon', 'Similarity']
     return top_pokemon
-
-def load_glove_embeddings(url):
-    embeddings = {}
-    response = requests.get(url)
-    if response.status_code == 200:
-        for line in response.text.splitlines():
-            values = line.split()
-            word = values[0]
-            vector = np.array(values[1:], dtype='float32')
-            embeddings[word] = vector
-    else:
-        raise Exception(f"Failed to download GloVe embeddings from {url}")
-    
-    return embeddings
 
 def calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings, embedding_dim=100):
     tfidf_vocab_dict = tfidf_vectorizer.vocabulary_
@@ -134,7 +125,6 @@ def main():
     mood = st.text_input("What is your general disposition? (grumpy, jolly, content)", "I am generally happy but not always.")
     hobbies = st.text_input("What are your hobbies? (hiking, exercising, video games, underwater basketweaving)", "I like to code and work on data analysis projects. I like to hike and go to the gym to stay healthy.")
     num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", value = 6, min_value = 1, max_value = 6)
-
     
     # Update these URLs with your actual GitHub raw URLs
     dex_bow_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_bow.npy"
