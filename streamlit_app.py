@@ -51,14 +51,18 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
     top_pokemon.columns = ['Pokemon', 'Similarity']
     return top_pokemon
 
-def load_glove_embeddings(file_path):
+def load_glove_embeddings(url):
     embeddings = {}
-    with open(file_path, 'r', encoding='utf-8') as f:
-        for line in f:
+    response = requests.get(url)
+    if response.status_code == 200:
+        for line in response.text.splitlines():
             values = line.split()
             word = values[0]
             vector = np.array(values[1:], dtype='float32')
             embeddings[word] = vector
+    else:
+        raise Exception(f"Failed to download GloVe embeddings from {url}")
+    
     return embeddings
 
 def calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings, embedding_dim=100):
