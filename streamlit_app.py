@@ -126,17 +126,26 @@ def main():
     hobbies = st.text_input("What are your hobbies? (hiking, exercising, video games, underwater basketweaving)", "I like to code and work on data analysis projects. I like to hike and go to the gym to stay healthy.")
     num_pokemon = st.number_input("Lastly, a responsible pet owner knows their limits. How many pokemon do you expect to care for?", value = 6, min_value = 1, max_value = 6)
     
-    # Github raw URLs
+    # Update these URLs with your actual GitHub raw URLs
     dex_bow_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_bow.npy"
     dex_tf_idf_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_tfidf_sparse.npz"
     full_dex_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/pokedex_full.csv"
     glove_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/glove.6B.100d.txt"
     
-     # Load the files directly
-    dex_bow_vec = np.load(dex_bow_url, allow_pickle=True)
-    dex_tf_idf_vec = load_npz(dex_tf_idf_url)
-    full_dex = pd.read_csv(full_dex_url)
-    
+    # Use a temporary file to save and load .npy and .npz files
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(download_file(dex_bow_url))
+        temp_file_path = temp_file.name
+    dex_bow_vec = np.load(temp_file_path)
+
+    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+        temp_file.write(download_file(dex_tf_idf_url))
+        temp_file_path = temp_file.name
+    dex_tf_idf_vec = load_npz(temp_file_path)
+
+    # Load the CSV file directly into a DataFrame
+    full_dex = pd.read_csv(io.BytesIO(download_file(full_dex_url)))
+
     # Load GloVe Embeddings
     glove_embeddings = load_glove_embeddings(glove_url)
     
