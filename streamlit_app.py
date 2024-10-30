@@ -127,7 +127,8 @@ def main():
     dex_bow_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_bow.npy"
     dex_tf_idf_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/full_dex_tfidf_sparse.npz"
     full_dex_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/pokedex_full.csv"
-
+    glove_url = "https://raw.githubusercontent.com/HaoleHawaiian/Pokemon-Team-Maker/main/Data/glove.6B.100d.txt"
+    
     # Use a temporary file to save and load .npy and .npz files
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         temp_file.write(download_file(dex_bow_url))
@@ -141,6 +142,9 @@ def main():
 
     # Load the CSV file directly into a DataFrame
     full_dex = pd.read_csv(io.BytesIO(download_file(full_dex_url)))
+
+    # Load GloVe Embeddings
+    glove_embeddings = load_glove_embeddings(glove_url)
     
     # CountVectorizer setup (assuming consistent feature names)
     vectorizer = CountVectorizer(stop_words='english')
