@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import io
+from io import StringIO
 import tempfile
 # import re
 import streamlit as st
@@ -21,12 +22,20 @@ nltk.download('punkt')
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
 
-def download_file(url):
+def load_glove_embeddings(url):
+    embeddings = {}
     response = requests.get(url)
     if response.status_code == 200:
-        return response.content
+        data = StringIO(response.text)
+        for line in data:
+            values = line.split()
+            word = values[0]
+            vector = np.array(values[1:], dtype='float32')
+            embeddings[word] = vector
     else:
-        raise Exception(f"Failed to download file from {url}")
+        raise Exception(f"Failed to download GloVe embeddings from {url}")
+    
+    return embeddings
 
 def input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies):
     # Combine, lower, put into a list
