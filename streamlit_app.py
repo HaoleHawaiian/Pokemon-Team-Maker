@@ -114,6 +114,7 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
 #     return cosine_sim
 
 def main():
+    st.cache_resource.clear()
     st.title("Pokemon Personality Team Generator")
     st.write("Input your preferences and see which Pokemon match your personality. Be as detailed as vague as you want, but more detail will give better results.")
     
