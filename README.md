@@ -1,5 +1,5 @@
 # Pokemon-Team-Maker
-This project will give you a team of 6 pokemon based on inputs about your personality and lifestyle.
+This project will give you a team of 6 pokemon based on inputs about your personality and lifestyle. Credit for the idea goes to the wonderful [Anna Zhu](https://www.linkedin.com/in/anna-zhu-r2d2/).
 
 ## API Data Pulls
 This document shows how I connected to the Pokebase API and grabbed the pokedex entries and pokemon types. The results from this step are the pokedex_entries.csv and pokedex_types.csv
