@@ -21,6 +21,9 @@ from sklearn.metrics.pairwise import cosine_similarity
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
 
+def format_pokemon_name(name):
+    return name.replace(" ", "_")
+
 def download_file(url):
     response = requests.get(url)
     if response.status_code == 200:
@@ -63,7 +66,19 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
     # Create a DataFrame for the top Pokémon, using Pokémon names
     top_pokemon = total_similarity.head(num_pokemon).reset_index()
     top_pokemon.columns = ['Pokemon', 'Similarity']
+    
+    # Create a column with the Bulbapedia links
+    top_pokemon['Link'] = top_pokemon['Pokemon'].apply(lambda name: f"https://bulbapedia.bulbagarden.net/wiki/{format_pokemon_name(name)}_(Pokémon)")
+    
     return top_pokemon
+
+def display_team(team, column):
+    # Display the team in the given column with hyperlinks
+    for idx, row in team.iterrows():
+        pokemon_name = row['Pokemon']
+        similarity = row['Similarity']
+        link = row['Link']
+        column.markdown(f"**[{pokemon_name}]({link})**: Similarity score = {similarity:.4f}")
 
 # def calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings, embedding_dim=100):
 #     tfidf_vocab_dict = tfidf_vectorizer.vocabulary_
@@ -180,11 +195,11 @@ def main():
         
         with col1:
             st.write("Option 1:\n")
-            st.dataframe(team)
+            display_team(team, col1)
             
         with col2:
             st.write("Option 2:\n")
-            st.dataframe(team_tfidf)
+            display_team(team_tfidf, col2)
             
         # with col3:
         #     st.write("Option 3:\n")
