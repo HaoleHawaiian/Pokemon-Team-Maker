@@ -194,7 +194,7 @@ def display_team(team, column):
 
 def main():
     st.title("Pokemon Personality Team Generator")
-    st.write("Input your preferences and see which Pokemon match your personality. Be as detailed or as vague as you want, but more information will give better results.")
+    st.write("Input your preferences and see which Pokemon match your personality. Be as detailed or as vague as you want, but more information will give better results. This isn't like a Buzzfeed quiz where you'll pick from a dropdown list of answers, this is NLP!")
     
     # Initialize vote counts and voted flag in session state
     if "option_1_votes" not in st.session_state:
@@ -305,5 +305,13 @@ def main():
         #     st.write("Option 4:\n")
         #     #st.dataframe()
 
+        # Footer with a link to your GitHub page
+        st.markdown(
+            """
+            <div style="position: fixed; bottom: 0; width: 100%; text-align: center; background-color: #f1f1f1; padding: 10px;">
+                <a href="https://github.com/HaoleHawaiian/Pokemon-Team-Maker" target="_blank">Visit my GitHub</a>
+            </div>
+            """, unsafe_allow_html=True
+        )
 if __name__ == "__main__":
     main()
