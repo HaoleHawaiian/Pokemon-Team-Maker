@@ -305,13 +305,13 @@ def main():
         #     st.write("Option 4:\n")
         #     #st.dataframe()
 
-        # Footer with a link to your GitHub page
-        st.markdown(
-            """
-            <div style="position: fixed; bottom: 0; width: 100%; text-align: center; background-color: #f1f1f1; padding: 10px;">
-                <a href="https://github.com/HaoleHawaiian/Pokemon-Team-Maker" target="_blank">Visit my GitHub</a>
-            </div>
-            """, unsafe_allow_html=True
-        )
+    # Footer with a link to your GitHub page
+    st.markdown(
+        """
+        <div style="position: fixed; bottom: 0; width: 100%; text-align: center; background-color: #f1f1f1; padding: 10px;">
+            <a href="https://github.com/HaoleHawaiian/Pokemon-Team-Maker" target="_blank">Visit my GitHub</a>
+        </div>
+        """, unsafe_allow_html=True
+    )
 if __name__ == "__main__":
     main()
