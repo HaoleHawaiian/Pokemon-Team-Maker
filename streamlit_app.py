@@ -294,8 +294,8 @@ def main():
                     st.success("Thank you for voting for Option 2!")
     
             # Show the current vote counts
-            st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
-            st.write(f"Option 2 Votes: {st.session_state['option_2_votes']}")
+            # st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
+            # st.write(f"Option 2 Votes: {st.session_state['option_2_votes']}")
             
         # with col3:
         #     st.write("Option 3:\n")
