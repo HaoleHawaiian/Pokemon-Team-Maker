@@ -6,6 +6,7 @@ import tempfile
 import streamlit as st
 import requests
 from scipy.sparse import load_npz
+import sqlite3
 
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -20,6 +21,43 @@ from sklearn.metrics.pairwise import cosine_similarity
 # Load pre-trained BERT model and tokenizer
 # tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 # model = BertModel.from_pretrained('bert-base-uncased')
+
+# Connect to an SQLite database to keep track of voting
+conn = sqlite3.connect('votes.db')
+cursor = conn.cursor()
+
+# Create a table for storing votes if it doesn't exist
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS votes (
+        option_name TEXT PRIMARY KEY,
+        vote_count INTEGER DEFAULT 0
+    )
+''')
+
+# Function to initialize the vote counts only if they are missing
+def initialize_votes():
+    cursor.execute('SELECT COUNT(*) FROM votes')
+    count = cursor.fetchone()[0]
+    
+    if count == 0:
+        cursor.execute('INSERT INTO votes (option_name, vote_count) VALUES ("Option 1", 0)')
+        cursor.execute('INSERT INTO votes (option_name, vote_count) VALUES ("Option 2", 0)')
+        conn.commit()
+
+# Run initialization to ensure vote counts exist
+initialize_votes()
+
+# Function to get current vote counts
+def get_votes(option_name):
+    cursor.execute('SELECT vote_count FROM votes WHERE option_name = ?', (option_name,))
+    result = cursor.fetchone()
+    return result[0] if result else 0
+
+# Function to update vote counts
+def update_votes(option_name):
+    current_votes = get_votes(option_name)
+    cursor.execute('UPDATE votes SET vote_count = ? WHERE option_name = ?', (current_votes + 1, option_name))
+    conn.commit()
 
 def format_pokemon_name(name):
     return name.replace(" ", "_")
@@ -129,10 +167,21 @@ def display_team(team, column):
 #     return cosine_sim
 
 def main():
-    st.cache_resource.clear()
     st.title("Pokemon Personality Team Generator")
-    st.write("Input your preferences and see which Pokemon match your personality. Be as detailed as vague as you want, but more detail will give better results.")
+    st.write("Input your preferences and see which Pokemon match your personality. Be as detailed or as vague as you want, but more information will give better results.")
     
+    # Initialize vote counts and voted flag in session state
+    if "option_1_votes" not in st.session_state:
+        st.session_state["option_1_votes"] = get_votes("Option 1")
+    if "option_2_votes" not in st.session_state:
+        st.session_state["option_2_votes"] = get_votes("Option 2")
+    if "voted" not in st.session_state:
+        st.session_state["voted"] = False
+    if "team" not in st.session_state:
+        st.session_state["team"] = None
+    if "team_tfidf" not in st.session_state:
+        st.session_state["team_tfidf"] = None
+        
     aesthetic = st.text_area("What is your personal aesthetic? What colors, materials, and patterns describe your wardrobe or living spaces? (cottagecore, beach vibes, lumberjack, business formal, cozy, etc.)", placeholder = "I like the small cozy feel of cottages, with the dark greens, wood burning stove, and homemade bread, reading a book on a rainy day. I also wear a lot of Hawaiian shirts and like cool, breezy clothes. Overall, my aesthetic is comfy.")
     weather = st.text_area("What kind of weather do you like? (thunderstorms, low humidity, sunny afternoons, temperature)", placeholder = "I enjoy sunny, cloudless days in general, with the occasional rainy day. I like warm days and cool evenings.")
     biome = st.text_area("What biomes or geographical areas do you find yourself drawn to? (deserts, beaches, mountain tops, big cities, boreal forests, etc)", placeholder = "I like rainforests, dry temperate forests, islands, flowery, soft grassy meadows, tropical beaches, and mountains.")
@@ -179,27 +228,48 @@ def main():
         
         # Bag of Words
         input_bow = vectorize_inputs(inputs, vectorizer)
-        team = cosine_sim(input_bow, dex_bow_vec, num_pokemon, full_dex, vectorizer.get_feature_names_out())
+        st.session_state["team"] = cosine_sim(input_bow, dex_bow_vec, num_pokemon, full_dex, vectorizer.get_feature_names_out())
 
         # TF-IDF
         input_tfidf = vectorize_inputs(inputs, tfidf_vectorizer)
-        team_tfidf = cosine_sim(input_tfidf, dex_tf_idf_vec, num_pokemon, full_dex, tfidf_vectorizer.get_feature_names_out())
+        st.session_state["team_tfidf"] = cosine_sim(input_tfidf, dex_tf_idf_vec, num_pokemon, full_dex, tfidf_vectorizer.get_feature_names_out())
         
         #GloVe
         # similarity_results = compute_similarities(inputs, full_dex['Description'], tfidf_vectorizer, glove_embeddings)
         # similarity_df = pd.DataFrame({'Pokemon': full_dex['Pokemon'], 'Similarity': similarity_results})
         # similarity_df = similarity_df.sort_values(by='Similarity', ascending=False).head(num_pokemon)
+
+        # Reset voting flag
+        st.session_state["voted"] = False
         
         # Display
         col1, col2 = st.columns(2)
         
+        if st.session_state["team"] is not None and st.session_state["team_tfidf"] is not None:
+        st.write("This app is still new, and I am testing different methods of generating teams. Please vote for the team you feel best represents your personality below. Eventually, the best method will become the only method. Remember, don't vote for the team with Pokemon that you like more, vote for the one who's dex descriptions you feel best represent your inputs.")
+        col1, col2 = st.columns(2)
+
         with col1:
-            st.write("Option 1:\n")
-            display_team(team, col1)
-            
+            st.write("Option 1:")
+            display_team(st.session_state["team"], col1)
+            if st.button("Vote for Option 1") and not st.session_state["voted"]:
+                update_votes("Option 1")
+                st.session_state["option_1_votes"] += 1
+                st.session_state["voted"] = True
+                st.success("Thank you for voting for Option 1!")
+
         with col2:
-            st.write("Option 2:\n")
-            display_team(team_tfidf, col2)
+            st.write("Option 2:")
+            display_team(st.session_state["team_tfidf"], col2)
+            if st.button("Vote for Option 2") and not st.session_state["voted"]:
+                update_votes("Option 2")
+                st.session_state["option_2_votes"] += 1
+                st.session_state["voted"] = True
+                st.success("Thank you for voting for Option 2!")
+
+        # Show the current vote counts
+        st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
+        st.write(f"Option 2 Votes: {st.session_state['option_2_votes']}")
             
         # with col3:
         #     st.write("Option 3:\n")
