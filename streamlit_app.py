@@ -246,30 +246,30 @@ def main():
         col1, col2 = st.columns(2)
         
         if st.session_state["team"] is not None and st.session_state["team_tfidf"] is not None:
-        st.write("This app is still new, and I am testing different methods of generating teams. Please vote for the team you feel best represents your personality below. Eventually, the best method will become the only method. Remember, don't vote for the team with Pokemon that you like more, vote for the one who's dex descriptions you feel best represent your inputs.")
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.write("Option 1:")
-            display_team(st.session_state["team"], col1)
-            if st.button("Vote for Option 1") and not st.session_state["voted"]:
-                update_votes("Option 1")
-                st.session_state["option_1_votes"] += 1
-                st.session_state["voted"] = True
-                st.success("Thank you for voting for Option 1!")
-
-        with col2:
-            st.write("Option 2:")
-            display_team(st.session_state["team_tfidf"], col2)
-            if st.button("Vote for Option 2") and not st.session_state["voted"]:
-                update_votes("Option 2")
-                st.session_state["option_2_votes"] += 1
-                st.session_state["voted"] = True
-                st.success("Thank you for voting for Option 2!")
-
-        # Show the current vote counts
-        st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
-        st.write(f"Option 2 Votes: {st.session_state['option_2_votes']}")
+            st.write("This app is still new, and I am testing different methods of generating teams. Please vote for the team you feel best represents your personality below. Eventually, the best method will become the only method. Remember, don't vote for the team with Pokemon that you like more, vote for the one who's dex descriptions you feel best represent your inputs.")
+            col1, col2 = st.columns(2)
+    
+            with col1:
+                st.write("Option 1:")
+                display_team(st.session_state["team"], col1)
+                if st.button("Vote for Option 1") and not st.session_state["voted"]:
+                    update_votes("Option 1")
+                    st.session_state["option_1_votes"] += 1
+                    st.session_state["voted"] = True
+                    st.success("Thank you for voting for Option 1!")
+    
+            with col2:
+                st.write("Option 2:")
+                display_team(st.session_state["team_tfidf"], col2)
+                if st.button("Vote for Option 2") and not st.session_state["voted"]:
+                    update_votes("Option 2")
+                    st.session_state["option_2_votes"] += 1
+                    st.session_state["voted"] = True
+                    st.success("Thank you for voting for Option 2!")
+    
+            # Show the current vote counts
+            st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
+            st.write(f"Option 2 Votes: {st.session_state['option_2_votes']}")
             
         # with col3:
         #     st.write("Option 3:\n")
