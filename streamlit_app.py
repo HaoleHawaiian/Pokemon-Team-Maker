@@ -111,12 +111,38 @@ def cosine_sim(input_bow, full_dex_bow, num_pokemon, dex_df, feature_names=None)
     return top_pokemon
 
 def display_team(team, column):
-    # Display the team in the given column with hyperlinks
-    for idx, row in team.iterrows():
-        pokemon_name = row['Pokemon']
-        similarity = row['Similarity']
-        link = row['Link']
-        column.markdown(f"**[{pokemon_name}]({link})**: Similarity score = {similarity:.4f}")
+    # Display the team in the given column with two images and details in each row
+    # Iterate through the team in steps of 2 (pairing Pokémon)
+    for i in range(0, len(team), 2):
+        # Create two columns for the pair of Pokémon
+        col1, col2 = column.columns(2)
+        
+        # First Pokémon
+        pokemon_1 = team.iloc[i]
+        pokemon_name_1 = pokemon_1['Pokemon']
+        similarity_1 = pokemon_1['Similarity']
+        link_1 = pokemon_1['Link']
+        formatted_name_1 = format_pokemon_name(pokemon_name_1).lower()
+        image_url_1 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_1}.png"
+
+        with col1:
+            st.image(image_url_1, caption=f"{pokemon_name_1} - Similarity: {similarity_1:.4f}", width=100)
+            st.markdown(f"**[{pokemon_name_1}]({link_1})**")
+            st.write(f"Similarity: {similarity_1:.4f}")
+        
+        # Check if there is a second Pokémon in the pair
+        if i + 1 < len(team):
+            pokemon_2 = team.iloc[i + 1]
+            pokemon_name_2 = pokemon_2['Pokemon']
+            similarity_2 = pokemon_2['Similarity']
+            link_2 = pokemon_2['Link']
+            formatted_name_2 = format_pokemon_name(pokemon_name_2).lower()
+            image_url_2 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_2}.png"
+
+            with col2:
+                st.image(image_url_2, caption=f"{pokemon_name_2} - Similarity: {similarity_2:.4f}", width=100)
+                st.markdown(f"**[{pokemon_name_2}]({link_2})**")
+                st.write(f"Similarity: {similarity_2:.4f}")
 
 # def calculate_weighted_average_embeddings(descriptions, tfidf_vectorizer, glove_embeddings, embedding_dim=100):
 #     tfidf_vocab_dict = tfidf_vectorizer.vocabulary_
