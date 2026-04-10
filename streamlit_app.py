@@ -304,7 +304,29 @@ def main():
         # with col4:
         #     st.write("Option 4:\n")
         #     #st.dataframe()
-
+      
+    # Fetch latest vote counts from DB
+    option_1_votes = get_votes("Option 1")
+    option_2_votes = get_votes("Option 2")
+    
+    # Create DataFrame for chart
+    import pandas as pd
+    vote_df = pd.DataFrame({
+        "Option": ["Option 1", "Option 2"],
+        "Votes": [option_1_votes, option_2_votes]
+    })
+    
+    # Display results
+    st.markdown("---")
+    st.subheader("Current Voting Results")
+    
+    st.write(f"Option 1 Votes: {option_1_votes}")
+    st.write(f"Option 2 Votes: {option_2_votes}")
+    
+    # Chart
+    st.bar_chart(vote_df.set_index("Option"))
+    
+    
     # Footer with a link to your GitHub page
     st.markdown(
         """
