@@ -278,20 +278,22 @@ def main():
             with col1:
                 st.write("Option 1:")
                 display_team(st.session_state["team"], col1)
+            
                 if st.button("Vote for Option 1") and not st.session_state["voted"]:
                     update_votes("Option 1")
-                    st.session_state["option_1_votes"] += 1
                     st.session_state["voted"] = True
                     st.success("Thank you for voting for Option 1!")
+                    st.rerun()
     
             with col2:
                 st.write("Option 2:")
                 display_team(st.session_state["team_tfidf"], col2)
+            
                 if st.button("Vote for Option 2") and not st.session_state["voted"]:
                     update_votes("Option 2")
-                    st.session_state["option_2_votes"] += 1
                     st.session_state["voted"] = True
                     st.success("Thank you for voting for Option 2!")
+                    st.rerun()
     
             # Show the current vote counts
             # st.write(f"Option 1 Votes: {st.session_state['option_1_votes']}")
