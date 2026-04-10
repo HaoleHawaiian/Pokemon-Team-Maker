@@ -310,7 +310,6 @@ def main():
     option_2_votes = get_votes("Option 2")
     
     # Create DataFrame for chart
-    import pandas as pd
     vote_df = pd.DataFrame({
         "Option": ["Option 1", "Option 2"],
         "Votes": [option_1_votes, option_2_votes]
