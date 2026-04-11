@@ -9,7 +9,8 @@ from pathlib import Path
 
 OPTION_1 = "Option 1"
 OPTION_2 = "Option 2"
-DEFAULT_OPTIONS = (OPTION_1, OPTION_2)
+OPTION_3 = "Option 3"
+DEFAULT_OPTIONS = (OPTION_1, OPTION_2, OPTION_3)
 
 
 class VoteStore(ABC):

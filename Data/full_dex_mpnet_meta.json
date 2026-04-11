@@ -1,0 +1,9 @@
+{
+  "model_name": "all-mpnet-base-v2",
+  "num_rows": 1025,
+  "embedding_shape": [
+    1025,
+    768
+  ],
+  "pokemon_column_sha256": "9b904b6491bb4840b5d6b1e5b7b6de6f3f6746de3c6b9c3f573498dd834d790f"
+}

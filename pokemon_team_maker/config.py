@@ -13,3 +13,8 @@ GITHUB_RAW_BASE = (
 DISTILBERT_MODEL_NAME = "distilbert-base-uncased"
 FULL_DEX_DISTILBERT_FILENAME = "full_dex_distilbert.npy"
 DISTILBERT_META_FILENAME = "full_dex_distilbert_meta.json"
+
+# Sentence-Transformers (MPNet): stronger sentence similarity than raw DistilBERT CLS.
+SENTENCE_TRANSFORMER_MODEL_NAME = "all-mpnet-base-v2"
+FULL_DEX_SENTENCE_TRANSFORMER_FILENAME = "full_dex_mpnet.npy"
+SENTENCE_TRANSFORMER_META_FILENAME = "full_dex_mpnet_meta.json"

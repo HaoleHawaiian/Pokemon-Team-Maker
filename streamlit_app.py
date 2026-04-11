@@ -7,17 +7,23 @@ import requests
 import streamlit as st
 from sklearn.feature_extraction.text import CountVectorizer
 
-from pokemon_team_maker.config import DATA_DIR, DISTILBERT_MODEL_NAME, GITHUB_RAW_BASE
+from pokemon_team_maker.config import (
+    DATA_DIR,
+    DISTILBERT_MODEL_NAME,
+    FULL_DEX_DISTILBERT_FILENAME,
+    FULL_DEX_SENTENCE_TRANSFORMER_FILENAME,
+    GITHUB_RAW_BASE,
+    SENTENCE_TRANSFORMER_MODEL_NAME,
+)
 from pokemon_team_maker.embeddings import embed_single_text, load_model_and_tokenizer
+from pokemon_team_maker.sentence_encoder import embed_single, load_model
 from pokemon_team_maker.similarity import (
     best_matching_dex_snippet,
     cosine_sim_bow_tfidf,
     format_pokemon_name,
     team_from_dense_similarity,
 )
-from pokemon_team_maker.votes import OPTION_1, OPTION_2, get_vote_store
-
-FULL_DEX_DISTILBERT_FILENAME = "full_dex_distilbert.npy"
+from pokemon_team_maker.votes import OPTION_1, OPTION_2, OPTION_3, get_vote_store
 
 
 @st.cache_data(ttl=3600, show_spinner=False)
@@ -48,9 +54,14 @@ def load_full_dex_df() -> pd.DataFrame:
     return pd.read_csv(io.BytesIO(_load_csv_bytes()))
 
 
-@st.cache_resource(show_spinner="Loading model...")
+@st.cache_resource(show_spinner="Loading DistilBERT…")
 def distilbert_model():
     return load_model_and_tokenizer(DISTILBERT_MODEL_NAME)
+
+
+@st.cache_resource(show_spinner="Loading sentence model…")
+def sentence_transformer_model():
+    return load_model(SENTENCE_TRANSFORMER_MODEL_NAME)
 
 
 def input_preprocess(aesthetic, weather, biome, living, dream_job, mood, hobbies):
@@ -144,6 +155,8 @@ def main():
         st.session_state["team"] = None
     if "team_distilbert" not in st.session_state:
         st.session_state["team_distilbert"] = None
+    if "team_mpnet" not in st.session_state:
+        st.session_state["team_mpnet"] = None
 
     aesthetic = st.text_area(
         "What is your personal aesthetic? What colors, materials, and patterns describe your wardrobe or living spaces? (cottagecore, beach vibes, lumberjack, business formal, cozy, etc.)",
@@ -189,6 +202,8 @@ def main():
 
     tokenizer, d_model = distilbert_model()
     dex_distilbert = _load_npy(FULL_DEX_DISTILBERT_FILENAME)
+    st_model = sentence_transformer_model()
+    dex_mpnet = _load_npy(FULL_DEX_SENTENCE_TRANSFORMER_FILENAME)
 
     if st.button("Get My Team"):
         inputs = input_preprocess(
@@ -202,16 +217,21 @@ def main():
         user_text = " ".join(inputs)
         st.session_state["match_user_text"] = user_text
         with st.spinner("Finding matches…"):
-            user_emb = embed_single_text(user_text, tokenizer, d_model)
-        st.session_state["team_distilbert"] = team_from_dense_similarity(
-            user_emb, dex_distilbert, num_pokemon, full_dex
-        )
+            user_emb_db = embed_single_text(user_text, tokenizer, d_model)
+            st.session_state["team_distilbert"] = team_from_dense_similarity(
+                user_emb_db, dex_distilbert, num_pokemon, full_dex
+            )
+            user_emb_mp = embed_single(st_model, user_text)
+            st.session_state["team_mpnet"] = team_from_dense_similarity(
+                user_emb_mp, dex_mpnet, num_pokemon, full_dex
+            )
 
         st.session_state["voted"] = False
 
     if (
         st.session_state["team"] is not None
         and st.session_state["team_distilbert"] is not None
+        and st.session_state["team_mpnet"] is not None
     ):
         st.write(
             "This app is still new, and I am testing different methods of generating teams. "
@@ -219,12 +239,12 @@ def main():
             "the best method will become the only method. Remember, don't vote for the team with "
             "Pokemon that you like more, vote for the one whose dex descriptions you feel best represent your inputs."
         )
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns(3)
 
         match_text = st.session_state.get("match_user_text") or ""
 
         with col1:
-            st.write("**Option 1**")
+            st.write("**Option 1** (BoW)")
             display_team(st.session_state["team"], col1, match_text, full_dex)
 
             if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
@@ -234,7 +254,7 @@ def main():
                 st.rerun()
 
         with col2:
-            st.write("**Option 2**")
+            st.write("**Option 2** (DistilBERT)")
             display_team(st.session_state["team_distilbert"], col2, match_text, full_dex)
 
             if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
@@ -243,20 +263,32 @@ def main():
                 st.success("Thank you for your vote!")
                 st.rerun()
 
+        with col3:
+            st.write("**Option 3** (Sentence Transformers, MPNet)")
+            display_team(st.session_state["team_mpnet"], col3, match_text, full_dex)
+
+            if st.button("Vote for Option 3", key="vote_opt3") and not st.session_state["voted"]:
+                vote_store.increment(OPTION_3)
+                st.session_state["voted"] = True
+                st.success("Thank you for your vote!")
+                st.rerun()
+
     if st.session_state.get("voted"):
         option_1_votes = vote_store.get_count(OPTION_1)
         option_2_votes = vote_store.get_count(OPTION_2)
+        option_3_votes = vote_store.get_count(OPTION_3)
 
         st.markdown("---")
         st.subheader("Current voting results")
 
         st.write(f"Option 1 votes: {option_1_votes}")
         st.write(f"Option 2 votes: {option_2_votes}")
+        st.write(f"Option 3 votes: {option_3_votes}")
 
         vote_df = pd.DataFrame(
             {
-                "Option": ["Option 1", "Option 2"],
-                "Votes": [option_1_votes, option_2_votes],
+                "Option": ["Option 1", "Option 2", "Option 3"],
+                "Votes": [option_1_votes, option_2_votes, option_3_votes],
             }
         )
         st.bar_chart(vote_df.set_index("Option"))

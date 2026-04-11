@@ -8,4 +8,5 @@ nltk>=3.8
 torch>=2.0
 transformers>=4.36
 sentencepiece>=0.1.99
+sentence-transformers>=2.2
 psycopg[binary]>=3.1
