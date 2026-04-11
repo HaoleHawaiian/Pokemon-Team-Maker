@@ -56,6 +56,14 @@ def _trim_snippet(text: str, max_chars: int) -> str:
     return cut + "…"
 
 
+def _strip_meta_preamble(line: str) -> str:
+    """Remove `color habitat … - ` prefix used in merged pokedex_full descriptions."""
+    line = line.strip()
+    if " - " in line:
+        return line.split(" - ", 1)[1].strip()
+    return line
+
+
 def best_matching_dex_snippet(
     user_profile: str,
     pokemon_name: str,
@@ -73,22 +81,28 @@ def best_matching_dex_snippet(
     dex_text = str(rows.iloc[0])[:desc_max_chars]
     fragments = _iter_dex_fragments(dex_text)
     if not fragments:
-        return _trim_snippet(dex_text, max_chars) if dex_text else ""
+        raw = _strip_meta_preamble(dex_text) if dex_text else ""
+        return _trim_snippet(raw, max_chars) if raw else ""
 
     utoks = _tokens(user_profile)
     if not utoks:
-        return _trim_snippet(max(fragments, key=len), max_chars)
+        raw = _strip_meta_preamble(max(fragments, key=len))
+        return _trim_snippet(raw, max_chars)
 
     best_f = ""
     best_score = -1
     for f in fragments:
-        score = len(_tokens(f) & utoks)
-        if score > best_score or (score == best_score and len(f) > len(best_f)):
+        f_narr = _strip_meta_preamble(f)
+        if len(f_narr) < 12:
+            continue
+        score = len(_tokens(f_narr) & utoks)
+        if score > best_score or (score == best_score and len(f_narr) > len(_strip_meta_preamble(best_f))):
             best_score = score
             best_f = f
     if best_score <= 0:
         best_f = max(fragments, key=len)
-    return _trim_snippet(best_f, max_chars)
+    raw = _strip_meta_preamble(best_f)
+    return _trim_snippet(raw, max_chars)
 
 
 def cosine_sim_bow_tfidf(input_vecs, full_dex_vecs, num_pokemon: int, dex_df: pd.DataFrame):

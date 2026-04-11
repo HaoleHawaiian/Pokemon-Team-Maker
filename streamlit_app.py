@@ -48,7 +48,7 @@ def load_full_dex_df() -> pd.DataFrame:
     return pd.read_csv(io.BytesIO(_load_csv_bytes()))
 
 
-@st.cache_resource(show_spinner="Loading DistilBERT…")
+@st.cache_resource(show_spinner="Loading model...")
 def distilbert_model():
     return load_model_and_tokenizer(DISTILBERT_MODEL_NAME)
 
@@ -70,6 +70,18 @@ def vectorize_inputs(inputs, vectorizer):
     return vectorizer.transform(inputs)
 
 
+def _type_suffix_plain(full_dex: pd.DataFrame, pokemon_name: str) -> str:
+    """` - Type1/Type2` for markdown after linked name; types are not linked."""
+    rows = full_dex.loc[full_dex["Pokemon"] == pokemon_name, "Type"]
+    if rows.empty:
+        return ""
+    t = str(rows.iloc[0]).strip()
+    if not t or t.lower() == "nan":
+        return ""
+    parts = t.split()
+    return " - " + "/".join(parts)
+
+
 def display_team(team, column, user_text: str, full_dex: pd.DataFrame):
     """Sprites, links, and best lexical-overlap Pokédex clause; Similarity stays in `team` for ranking."""
     for i in range(0, len(team), 2):
@@ -82,8 +94,10 @@ def display_team(team, column, user_text: str, full_dex: pd.DataFrame):
         image_url_1 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_1}.png"
 
         with col1:
-            st.image(image_url_1, caption=pokemon_name_1, width=100)
-            st.markdown(f"**[{pokemon_name_1}]({link_1})**")
+            st.image(image_url_1, width=100)
+            st.markdown(
+                f"[**{pokemon_name_1}**]({link_1}){_type_suffix_plain(full_dex, pokemon_name_1)}"
+            )
             if user_text.strip():
                 snip1 = best_matching_dex_snippet(user_text, pokemon_name_1, full_dex)
                 if snip1:
@@ -97,8 +111,10 @@ def display_team(team, column, user_text: str, full_dex: pd.DataFrame):
             image_url_2 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_2}.png"
 
             with col2:
-                st.image(image_url_2, caption=pokemon_name_2, width=100)
-                st.markdown(f"**[{pokemon_name_2}]({link_2})**")
+                st.image(image_url_2, width=100)
+                st.markdown(
+                    f"[**{pokemon_name_2}**]({link_2}){_type_suffix_plain(full_dex, pokemon_name_2)}"
+                )
                 if user_text.strip():
                     snip2 = best_matching_dex_snippet(user_text, pokemon_name_2, full_dex)
                     if snip2:
@@ -208,7 +224,7 @@ def main():
         match_text = st.session_state.get("match_user_text") or ""
 
         with col1:
-            st.write("**Option 1 — Bag of words**")
+            st.write("**Option 1**")
             display_team(st.session_state["team"], col1, match_text, full_dex)
 
             if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
@@ -218,7 +234,7 @@ def main():
                 st.rerun()
 
         with col2:
-            st.write("**Option 2 — DistilBERT**")
+            st.write("**Option 2**")
             display_team(st.session_state["team_distilbert"], col2, match_text, full_dex)
 
             if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
@@ -234,12 +250,12 @@ def main():
         st.markdown("---")
         st.subheader("Current voting results")
 
-        st.write(f"Option 1 (Bag of words) votes: {option_1_votes}")
-        st.write(f"Option 2 (DistilBERT) votes: {option_2_votes}")
+        st.write(f"Option 1 votes: {option_1_votes}")
+        st.write(f"Option 2 votes: {option_2_votes}")
 
         vote_df = pd.DataFrame(
             {
-                "Option": ["Option 1 — BoW", "Option 2 — DistilBERT"],
+                "Option": ["Option 1", "Option 2"],
                 "Votes": [option_1_votes, option_2_votes],
             }
         )
