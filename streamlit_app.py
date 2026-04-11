@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 import requests
 import streamlit as st
-from scipy.sparse import load_npz
 from sklearn.feature_extraction.text import CountVectorizer
 
 from pokemon_team_maker.config import DATA_DIR, DISTILBERT_MODEL_NAME, GITHUB_RAW_BASE
@@ -71,41 +70,30 @@ def vectorize_inputs(inputs, vectorizer):
 
 
 def display_team(team, column):
+    """Sprites and links only; Similarity stays in `team` for ranking logic."""
     for i in range(0, len(team), 2):
         col1, col2 = column.columns(2)
 
         pokemon_1 = team.iloc[i]
         pokemon_name_1 = pokemon_1["Pokemon"]
-        similarity_1 = pokemon_1["Similarity"]
         link_1 = pokemon_1["Link"]
         formatted_name_1 = format_pokemon_name(pokemon_name_1).lower()
         image_url_1 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_1}.png"
 
         with col1:
-            st.image(
-                image_url_1,
-                caption=f"{pokemon_name_1} - Similarity: {similarity_1:.4f}",
-                width=100,
-            )
+            st.image(image_url_1, caption=pokemon_name_1, width=100)
             st.markdown(f"**[{pokemon_name_1}]({link_1})**")
-            st.write(f"Similarity: {similarity_1:.4f}")
 
         if i + 1 < len(team):
             pokemon_2 = team.iloc[i + 1]
             pokemon_name_2 = pokemon_2["Pokemon"]
-            similarity_2 = pokemon_2["Similarity"]
             link_2 = pokemon_2["Link"]
             formatted_name_2 = format_pokemon_name(pokemon_name_2).lower()
             image_url_2 = f"https://img.pokemondb.net/sprites/home/normal/{formatted_name_2}.png"
 
             with col2:
-                st.image(
-                    image_url_2,
-                    caption=f"{pokemon_name_2} - Similarity: {similarity_2:.4f}",
-                    width=100,
-                )
+                st.image(image_url_2, caption=pokemon_name_2, width=100)
                 st.markdown(f"**[{pokemon_name_2}]({link_2})**")
-                st.write(f"Similarity: {similarity_2:.4f}")
 
 
 def main():
@@ -187,7 +175,7 @@ def main():
         )
 
         user_text = " ".join(inputs)
-        with st.spinner("Scoring with DistilBERT…"):
+        with st.spinner("Finding matches…"):
             user_emb = embed_single_text(user_text, tokenizer, d_model)
         st.session_state["team_distilbert"] = team_from_dense_similarity(
             user_emb, dex_distilbert, num_pokemon, full_dex
@@ -214,7 +202,7 @@ def main():
             if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
                 vote_store.increment(OPTION_1)
                 st.session_state["voted"] = True
-                st.success("Thank you for voting for Option 1!")
+                st.success("Thank you for your vote!")
                 st.rerun()
 
         with col2:
@@ -224,25 +212,26 @@ def main():
             if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
                 vote_store.increment(OPTION_2)
                 st.session_state["voted"] = True
-                st.success("Thank you for voting for Option 2!")
+                st.success("Thank you for your vote!")
                 st.rerun()
 
-    option_1_votes = vote_store.get_count(OPTION_1)
-    option_2_votes = vote_store.get_count(OPTION_2)
+    if st.session_state.get("voted"):
+        option_1_votes = vote_store.get_count(OPTION_1)
+        option_2_votes = vote_store.get_count(OPTION_2)
 
-    st.markdown("---")
-    st.subheader("Current Voting Results")
+        st.markdown("---")
+        st.subheader("Current voting results")
 
-    st.write(f"Option 1 (Bag of words) votes: {option_1_votes}")
-    st.write(f"Option 2 (DistilBERT) votes: {option_2_votes}")
+        st.write(f"Option 1 (Bag of words) votes: {option_1_votes}")
+        st.write(f"Option 2 (DistilBERT) votes: {option_2_votes}")
 
-    vote_df = pd.DataFrame(
-        {
-            "Option": ["Option 1 — BoW", "Option 2 — DistilBERT"],
-            "Votes": [option_1_votes, option_2_votes],
-        }
-    )
-    st.bar_chart(vote_df.set_index("Option"))
+        vote_df = pd.DataFrame(
+            {
+                "Option": ["Option 1 — BoW", "Option 2 — DistilBERT"],
+                "Votes": [option_1_votes, option_2_votes],
+            }
+        )
+        st.bar_chart(vote_df.set_index("Option"))
 
     st.markdown(
         """
