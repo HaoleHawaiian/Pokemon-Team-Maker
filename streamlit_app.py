@@ -10,6 +10,7 @@ from sklearn.feature_extraction.text import CountVectorizer
 from pokemon_team_maker.config import DATA_DIR, DISTILBERT_MODEL_NAME, GITHUB_RAW_BASE
 from pokemon_team_maker.embeddings import embed_single_text, load_model_and_tokenizer
 from pokemon_team_maker.similarity import (
+    best_matching_dex_snippet,
     cosine_sim_bow_tfidf,
     format_pokemon_name,
     team_from_dense_similarity,
@@ -69,8 +70,8 @@ def vectorize_inputs(inputs, vectorizer):
     return vectorizer.transform(inputs)
 
 
-def display_team(team, column):
-    """Sprites and links only; Similarity stays in `team` for ranking logic."""
+def display_team(team, column, user_text: str, full_dex: pd.DataFrame):
+    """Sprites, links, and best lexical-overlap Pokédex clause; Similarity stays in `team` for ranking."""
     for i in range(0, len(team), 2):
         col1, col2 = column.columns(2)
 
@@ -83,6 +84,10 @@ def display_team(team, column):
         with col1:
             st.image(image_url_1, caption=pokemon_name_1, width=100)
             st.markdown(f"**[{pokemon_name_1}]({link_1})**")
+            if user_text.strip():
+                snip1 = best_matching_dex_snippet(user_text, pokemon_name_1, full_dex)
+                if snip1:
+                    st.caption(snip1)
 
         if i + 1 < len(team):
             pokemon_2 = team.iloc[i + 1]
@@ -94,6 +99,10 @@ def display_team(team, column):
             with col2:
                 st.image(image_url_2, caption=pokemon_name_2, width=100)
                 st.markdown(f"**[{pokemon_name_2}]({link_2})**")
+                if user_text.strip():
+                    snip2 = best_matching_dex_snippet(user_text, pokemon_name_2, full_dex)
+                    if snip2:
+                        st.caption(snip2)
 
 
 def main():
@@ -175,6 +184,7 @@ def main():
         )
 
         user_text = " ".join(inputs)
+        st.session_state["match_user_text"] = user_text
         with st.spinner("Finding matches…"):
             user_emb = embed_single_text(user_text, tokenizer, d_model)
         st.session_state["team_distilbert"] = team_from_dense_similarity(
@@ -195,9 +205,11 @@ def main():
         )
         col1, col2 = st.columns(2)
 
+        match_text = st.session_state.get("match_user_text") or ""
+
         with col1:
             st.write("**Option 1 — Bag of words**")
-            display_team(st.session_state["team"], col1)
+            display_team(st.session_state["team"], col1, match_text, full_dex)
 
             if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
                 vote_store.increment(OPTION_1)
@@ -207,7 +219,7 @@ def main():
 
         with col2:
             st.write("**Option 2 — DistilBERT**")
-            display_team(st.session_state["team_distilbert"], col2)
+            display_team(st.session_state["team_distilbert"], col2, match_text, full_dex)
 
             if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
                 vote_store.increment(OPTION_2)

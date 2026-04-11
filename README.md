@@ -50,3 +50,5 @@ After updating embeddings, push `full_dex_distilbert.npy` (and any updated CSV/n
 ## Limitations
 
 Pokédex blurbs are short; older species have many merged lines in one row. There is no objective “right” team—similarity scores are a transparency aid, not a verdict.
+
+Under each recommended Pokémon, the app shows the **single clause** from that species’ merged Pokédex text with the strongest **word overlap** with your answers. That line is for readability; row-level **BoW / DistilBERT** scores still drive which species appear, not a separate score on each sentence.
