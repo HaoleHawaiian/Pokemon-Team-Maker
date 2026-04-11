@@ -81,6 +81,13 @@ def vectorize_inputs(inputs, vectorizer):
     return vectorizer.transform(inputs)
 
 
+def _option_heading(label: str) -> None:
+    st.markdown(
+        f'<p style="text-align:center;font-weight:600;font-size:1.05rem;margin:0 0 0.35rem 0;">{label}</p>',
+        unsafe_allow_html=True,
+    )
+
+
 def _type_suffix_plain(full_dex: pd.DataFrame, pokemon_name: str) -> str:
     """` - Type1/Type2` for markdown after linked name; types are not linked."""
     rows = full_dex.loc[full_dex["Pokemon"] == pokemon_name, "Type"]
@@ -244,34 +251,37 @@ def main():
         match_text = st.session_state.get("match_user_text") or ""
 
         with col1:
-            st.write("**Option 1** (BoW)")
-            display_team(st.session_state["team"], col1, match_text, full_dex)
-
-            if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
-                vote_store.increment(OPTION_1)
-                st.session_state["voted"] = True
-                st.success("Thank you for your vote!")
-                st.rerun()
+            _option_heading("Option 1")
+            opt1 = st.container(border=True)
+            with opt1:
+                display_team(st.session_state["team"], opt1, match_text, full_dex)
+                if st.button("Vote for Option 1", key="vote_opt1") and not st.session_state["voted"]:
+                    vote_store.increment(OPTION_1)
+                    st.session_state["voted"] = True
+                    st.success("Thank you for your vote!")
+                    st.rerun()
 
         with col2:
-            st.write("**Option 2** (DistilBERT)")
-            display_team(st.session_state["team_distilbert"], col2, match_text, full_dex)
-
-            if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
-                vote_store.increment(OPTION_2)
-                st.session_state["voted"] = True
-                st.success("Thank you for your vote!")
-                st.rerun()
+            _option_heading("Option 2")
+            opt2 = st.container(border=True)
+            with opt2:
+                display_team(st.session_state["team_distilbert"], opt2, match_text, full_dex)
+                if st.button("Vote for Option 2", key="vote_opt2") and not st.session_state["voted"]:
+                    vote_store.increment(OPTION_2)
+                    st.session_state["voted"] = True
+                    st.success("Thank you for your vote!")
+                    st.rerun()
 
         with col3:
-            st.write("**Option 3** (Sentence Transformers, MPNet)")
-            display_team(st.session_state["team_mpnet"], col3, match_text, full_dex)
-
-            if st.button("Vote for Option 3", key="vote_opt3") and not st.session_state["voted"]:
-                vote_store.increment(OPTION_3)
-                st.session_state["voted"] = True
-                st.success("Thank you for your vote!")
-                st.rerun()
+            _option_heading("Option 3")
+            opt3 = st.container(border=True)
+            with opt3:
+                display_team(st.session_state["team_mpnet"], opt3, match_text, full_dex)
+                if st.button("Vote for Option 3", key="vote_opt3") and not st.session_state["voted"]:
+                    vote_store.increment(OPTION_3)
+                    st.session_state["voted"] = True
+                    st.success("Thank you for your vote!")
+                    st.rerun()
 
     if st.session_state.get("voted"):
         option_1_votes = vote_store.get_count(OPTION_1)
